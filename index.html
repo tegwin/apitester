@@ -1,12 +1,818 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Tester</title>
+    <title>API Tester Desktop App</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body { 
+        font-family: Arial, sans-serif; 
+        background: #f5f5f5;
+        height: 100vh;
+        overflow: hidden;
+      }
+      
+      .app-container {
+        display: flex;
+        height: 100vh;
+      }
+      
+      /* Sidebar for Collections */
+      .sidebar {
+        width: 300px;
+        background: #2c2c2c;
+        color: white;
+        padding: 0;
+        overflow-y: auto;
+        border-right: 1px solid #444;
+      }
+      
+      .sidebar-header {
+        padding: 10px 15px;
+        border-bottom: 1px solid #444;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .sidebar h3 {
+        color: #fff;
+        margin: 0;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+      
+      .sidebar-actions {
+        display: flex;
+        gap: 5px;
+      }
+      
+      .icon-btn {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 3px;
+        font-size: 16px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .icon-btn:hover {
+        background: #3c3c3c;
+        color: #fff;
+      }
+      
+      .collections-list {
+        padding: 5px;
+      }
+      
+      .collection-item {
+        padding: 8px 12px;
+        margin: 2px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        background: #3c3c3c;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+      }
+      
+      .collection-item:hover {
+        background: #4c4c4c;
+      }
+      
+      .collection-item.active {
+        background: #007bff;
+      }
+      
+      .collection-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+      }
+      
+      .collection-actions {
+        display: none;
+        gap: 2px;
+      }
+      
+      .collection-item:hover .collection-actions {
+        display: flex;
+      }
+      
+      .request-item {
+        padding: 6px 8px 6px 30px;
+        font-size: 12px;
+        color: #bbb;
+        cursor: pointer;
+        border-left: 2px solid #555;
+        margin-left: 15px;
+        background: #333;
+        border-radius: 3px;
+        margin-bottom: 1px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .request-item:hover {
+        background: #444;
+      }
+      
+      .request-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+      }
+      
+      .request-actions {
+        display: none;
+        gap: 2px;
+      }
+      
+      .request-item:hover .request-actions {
+        display: flex;
+      }
+      
+      /* Context menu */
+      .context-menu {
+        position: fixed;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        padding: 5px 0;
+        z-index: 10000;
+        display: none;
+      }
+      
+      .context-menu-item {
+        padding: 8px 20px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #333;
+      }
+      
+      .context-menu-item:hover {
+        background: #f0f0f0;
+      }
+      
+      .context-menu-separator {
+        height: 1px;
+        background: #eee;
+        margin: 5px 0;
+      }
+      
+      /* Main Content Area */
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Request Panel */
+      .request-panel {
+        height: 60%;
+        background: white;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Request Header */
+      .request-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        background: #fafafa;
+      }
+      
+      .request-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+      }
+      
+      .request-url-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .method-row {
+        display: flex;
+        align-items: center;
+      }
+      
+      .url-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+      }
+      
+      .method-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 80px;
+      }
+      
+      .url-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        width: auto;
+      }
+      
+      .send-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        width: auto;
+        flex-shrink: 0;
+      }
+      
+      .send-btn:hover {
+        background: #0056b3;
+      }
+      
+      /* Tabs */
+      .tabs {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+      }
+      
+      .tab {
+        padding: 12px 20px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 14px;
+        border-bottom: 3px solid transparent;
+      }
+      
+      .tab.active {
+        background: white;
+        border-bottom-color: #007bff;
+        color: #007bff;
+      }
+      
+      .tab:hover {
+        background: #e9ecef;
+      }
+      
+      /* Tab Content */
+      .tab-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: white;
+      }
+      
+      .tab-pane {
+        display: none;
+      }
+      
+      .tab-pane.active {
+        display: block;
+      }
+      
+      /* Form Elements */
+      textarea, input, select { 
+        margin: 5px 0; 
+        width: 100%; 
+        padding: 8px; 
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      
+      button { 
+        margin: 5px 0; 
+        padding: 8px; 
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      
+      .form-section { 
+        margin-bottom: 20px; 
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background: #fafafa;
+      }
+      
+      .form-section h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 14px;
+      }
+      
+      .btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        width: auto;
+        margin: 2px;
+      }
+      
+      .btn:hover {
+        background: #0056b3;
+      }
+      
+      .btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+      
+      .btn.stop-btn {
+        background: #dc3545;
+      }
+      
+      .btn.stop-btn:hover:not(:disabled) {
+        background: #c82333;
+      }
+      
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      
+      .row > * {
+        flex: 1;
+      }
+      
+      /* Auth Sections */
+      .auth-section {
+        display: none;
+      }
+      
+      .auth-section.active {
+        display: block;
+      }
+      
+      .oauth-status {
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        font-size: 13px;
+      }
+      
+      .oauth-status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      
+      .oauth-status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      
+      .oauth-status.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      
+      .token-display {
+        font-family: monospace;
+        background: #e9ecef;
+        padding: 8px;
+        border-radius: 4px;
+        word-break: break-all;
+        font-size: 12px;
+      }
+      
+      /* Response Panel */
+      .response-panel {
+        height: 40%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .response-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        background: #fafafa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .response-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+      }
+      
+      .response-status {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      
+      .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      
+      .status-2xx {
+        background: #d4edda;
+        color: #155724;
+      }
+      
+      .status-4xx {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      
+      .status-5xx {
+        background: #f5c6cb;
+        color: #721c24;
+      }
+      
+      .status-3xx {
+        background: #fff3cd;
+        color: #856404;
+      }
+      
+      .copy-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      
+      .copy-btn:hover {
+        background: #218838;
+      }
+      
+      .response-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      
+      .response-body {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 100%;
+        overflow-y: auto;
+      }
+      
+      /* File input styling */
+      .file-input {
+        margin: 10px 0;
+      }
+      
+      /* Collection inheritance indicator */
+      .inheritance-badge {
+        display: inline-block;
+        background: #17a2b8;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        margin-left: 10px;
+      }
+      
+      /* Custom modal for input */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+      }
+      
+      .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 400px;
+        max-width: 90%;
+        position: relative;
+        z-index: 10001;
+      }
+      
+      .modal-header {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+      
+      .modal-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+      }
+      
+      .modal-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+      }
+      
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      
+      .modal-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .modal-btn-primary {
+        background: #007bff;
+        color: white;
+      }
+      
+      .modal-btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <div class="app-container">
+      <!-- Collections Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h3>Collections</h3>
+          <div class="sidebar-actions">
+            <button class="icon-btn" onclick="createCollection()" title="New Collection">+</button>
+            <button class="icon-btn" onclick="importCollection()" title="Import">⬇</button>
+          </div>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+        
+        <div class="collections-list" id="collectionsContainer">
+          <div class="collection-item active" data-id="default">
+            <div class="collection-info">
+              <span class="expand-arrow">▶</span>
+              📁 Default Collection
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Context Menu -->
+      <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="contextMenuAction('rename')">Rename</div>
+        <div class="context-menu-item" onclick="contextMenuAction('duplicate')">Duplicate</div>
+        <div class="context-menu-item" onclick="contextMenuAction('export')">Export</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" onclick="contextMenuAction('delete')">Delete</div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Request Panel -->
+        <div class="request-panel">
+          <!-- Request Header -->
+          <div class="request-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="request-title" id="requestTitle">New Request</div>
+              <button class="btn" onclick="saveRequestToCollection()" style="width: auto; background: #28a745;">Save Request</button>
+            </div>
+            <div class="request-url-bar">
+              <div class="method-row">
+                <select class="method-select" id="method">
+                  <option>GET</option>
+                  <option>POST</option>
+                  <option>PUT</option>
+                  <option>DELETE</option>
+                  <option>PATCH</option>
+                </select>
+              </div>
+              <div class="url-row">
+                <input type="text" class="url-input" id="url" placeholder="Enter request URL" />
+                <button class="send-btn" onclick="sendRequest()">Send</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab('params')">Params</button>
+            <button class="tab" onclick="switchTab('auth')">Authorization</button>
+            <button class="tab" onclick="switchTab('headers')">Headers</button>
+            <button class="tab" onclick="switchTab('body')">Body</button>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="tab-content">
+            <!-- Params Tab -->
+            <div id="params-tab" class="tab-pane active">
+              <div class="form-section">
+                <h4>Query Parameters</h4>
+                <textarea id="queryParams" rows="4" placeholder="key1=value1
+key2=value2"></textarea>
+                <button class="btn" onclick="addCommonParams()">Add Common Params</button>
+              </div>
+            </div>
+
+            <!-- Authorization Tab -->
+            <div id="auth-tab" class="tab-pane">
+              <div class="form-section">
+                <h4>Authentication Type <span id="authInheritance" class="inheritance-badge" style="display: none;">Inherited</span></h4>
+                <div class="row">
+                  <select id="authType" onchange="toggleAuthSections()">
+                    <option value="none">No Auth</option>
+                    <option value="inherit">Inherit from Collection</option>
+                    <option value="bearer">Bearer Token</option>
+                    <option value="basic">Basic Auth</option>
+                    <option value="apikey">API Key</option>
+                    <option value="oauth2">OAuth 2.0</option>
+                  </select>
+                  <button class="btn" onclick="saveAuthToCollection()">Save to Collection</button>
+                </div>
+
+                <!-- Bearer Token Section -->
+                <div id="bearerSection" class="auth-section">
+                  <input type="text" id="authToken" placeholder="Bearer Token" />
+                </div>
+
+                <!-- Basic Auth Section -->
+                <div id="basicSection" class="auth-section">
+                  <div class="row">
+                    <input type="text" id="authUsername" placeholder="Username" />
+                    <input type="password" id="authPassword" placeholder="Password" />
+                  </div>
+                </div>
+
+                <!-- API Key Section -->
+                <div id="apikeySection" class="auth-section">
+                  <div class="row">
+                    <input type="text" id="apiKeyName" placeholder="API Key Name (e.g., X-API-Key)" />
+                    <input type="text" id="apiKeyValue" placeholder="API Key Value" />
+                  </div>
+                  <select id="apiKeyLocation">
+                    <option value="header">Header</option>
+                    <option value="query">Query Parameter</option>
+                  </select>
+                </div>
+
+                <!-- OAuth 2.0 Section -->
+                <div id="oauth2Section" class="auth-section">
+                  <h4>Grant Type:</h4>
+                  <select id="oauthGrantType" onchange="toggleOAuthGrantType()">
+                    <option value="client_credentials">Client Credentials</option>
+                    <option value="authorization_code">Authorization Code</option>
+                  </select>
+                  
+                  <!-- Client Credentials Fields -->
+                  <div id="clientCredentialsSection">
+                    <div class="row">
+                      <input type="text" id="oauthClientId" placeholder="Client ID" />
+                      <input type="text" id="oauthClientSecret" placeholder="Client Secret" />
+                    </div>
+                    <input type="text" id="oauthTokenUrl" placeholder="Access Token URL" />
+                    <input type="text" id="oauthScope" placeholder="Scopes (space-separated)" />
+                    
+                    <div class="row">
+                      <button class="btn" onclick="getClientCredentialsToken()" id="oauthGetTokenBtn">Get Access Token</button>
+                      <button class="btn" onclick="clearOAuthToken()" id="clearOauthBtn" disabled>Clear Token</button>
+                    </div>
+                  </div>
+                  
+                  <!-- Authorization Code Fields -->
+                  <div id="authCodeSection" style="display: none;">
+                    <div class="row">
+                      <input type="text" id="oauthClientIdAuth" placeholder="Client ID" />
+                      <input type="text" id="oauthClientSecretAuth" placeholder="Client Secret (if required)" />
+                    </div>
+                    <input type="text" id="oauthAuthUrl" placeholder="Authorization URL" />
+                    <input type="text" id="oauthTokenUrlAuth" placeholder="Token URL" />
+                    <input type="text" id="oauthRedirectUri" placeholder="Redirect URI (default: http://localhost:3000/callback)" />
+                    <input type="text" id="oauthScopeAuth" placeholder="Scopes (space-separated)" />
+                    
+                    <div class="row">
+                      <button class="btn" onclick="startOAuthFlow()" id="oauthBtn">Authorize with OAuth</button>
+                      <button class="btn stop-btn" onclick="stopOAuthFlow()" id="stopOauthBtn" disabled>Stop Authorization</button>
+                      <button class="btn" onclick="clearOAuthToken()" id="clearOauthBtnAuth" disabled>Clear Token</button>
+                    </div>
+                    
+                    <div class="row">
+                      <button class="btn" onclick="testOAuthURL()">Test OAuth URL</button>
+                      <button class="btn" onclick="openInBrowser()">Open in Browser</button>
+                    </div>
+                  </div>
+                  
+                  <div id="oauthStatus"></div>
+                  <div id="tokenDisplay"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Headers Tab -->
+            <div id="headers-tab" class="tab-pane">
+              <div class="form-section">
+                <h4>Request Headers (one per line, format: Header-Name: Value)</h4>
+                <textarea id="headers" rows="6" placeholder="Content-Type: application/json
+Accept: application/json
+X-Custom-Header: custom-value"></textarea>
+                <button class="btn" onclick="addCommonHeaders()">Add Common Headers</button>
+              </div>
+            </div>
+
+            <!-- Body Tab -->
+            <div id="body-tab" class="tab-pane">
+              <div class="form-section">
+                <h4>Request Body</h4>
+                <textarea id="body" rows="10" placeholder="Request body (JSON, XML, text, etc.)"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Response Panel -->
+        <div class="response-panel">
+          <div class="response-header">
+            <div class="response-title">Response</div>
+            <div class="response-status">
+              <div id="statusBadge" class="status-badge" style="display: none;"></div>
+              <div id="responseTime" style="font-size: 13px; color: #666;"></div>
+              <button class="copy-btn" onclick="copyResponse()" id="copyBtn" style="display: none;">Copy Response</button>
+            </div>
+          </div>
+          <div class="response-content">
+            <div id="response" class="response-body">Response will appear here...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Input Modal -->
+    <div id="inputModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header" id="modalTitle">Enter Value</div>
+        <input type="text" id="modalInput" class="modal-input" placeholder="Enter value...">
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="modal-btn modal-btn-primary" onclick="confirmModal()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="renderer.js?v=4"></script>
   </body>
 </html>
